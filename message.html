@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>
+console.log('FULL URL:', window.location.href);
+console.log('SEARCH:', window.location.search);
+
+const params = new URLSearchParams(window.location.search);
+const messageId = params.get('messageId');
+
+if (!messageId) {
+  document.getElementById('status').innerText =
+    'Invalid or missing message link';
+  throw new Error('Missing messageId');
+}
+</script>
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexvia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      background: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .status {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .reply {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0a7c2f;
+    }
+    .muted {
+      color: #777;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div id="status" class="status">Waiting for owner reply…</div>
+  <div id="reply" class="reply"></div>
+  <div class="muted">This page will update automatically</div>
+</div>
+
+<script>
+  if (!messageId) {
+    document.getElementById('status').innerText =
+      'Invalid or missing message link';
+  } else {
+    pollMessage();
+    setInterval(pollMessage, 5000);
+  }
+
+  async function pollMessage() {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/messages/${messageId}`
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      if (data.status === 'replied') {
+        document.getElementById('status').innerText = 'Owner replied:';
+        document.getElementById('reply').innerText = data.body;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+</script>
+
+</body>
+</html>
